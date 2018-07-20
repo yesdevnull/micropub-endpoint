@@ -1,0 +1,24 @@
+<?php
+
+namespace App\ValueObjects;
+
+use Illuminate\Support\Collection;
+
+/**
+ * Interface ItemRequestValueObjectInterface
+ */
+interface ItemRequestValueObjectInterface
+{
+    public const ACTION_CREATE = 'create';
+
+    public function getAction(): string;
+
+    /**
+     * Get all properties for the item front matter, excluding the content.
+     *
+     * @return Collection
+     */
+    public function getFrontMatter(): Collection;
+
+    public function getContent(): string;
+}
