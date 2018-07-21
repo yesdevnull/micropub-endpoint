@@ -17,29 +17,33 @@
 
 $router->group(
     [
-        'middleware' => [
-            'auth',
-            'parse',
-        ]
+        'middleware' => 'auth',
     ],
     function () use ($router) {
-        $router->get(
-            '/',
+        $router->group(
             [
-                'as' => 'get_micropub',
-                'uses' => 'GetMethodController@index',
-            ]
+                'middleware' => 'parse',
+            ],
+            function () use ($router) {
+                $router->get(
+                    '/',
+                    [
+                        'as' => 'get_micropub',
+                        'uses' => 'GetMethodController@index',
+                    ]
+                );
+
+                $router->post(
+                    '/',
+                    [
+                        'as' => 'post_micropub',
+                        'uses' => 'PostMethodController@index',
+                    ]
+                );
+            }
         );
 
         $router->post(
-            '/',
-            [
-                'as' => 'post_micropub',
-                'uses' => 'PostMethodController@index',
-            ]
-        );
-
-        $router->get(
             '/media',
             [
                 'as' => 'media',

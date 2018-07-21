@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Service\MediaService;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Class AppServiceProvider
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -11,8 +15,15 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
-        //
+        $this->app->bind(
+            MediaService::class,
+            function () {
+                return new MediaService(
+                    'media'
+                );
+            }
+        );
     }
 }

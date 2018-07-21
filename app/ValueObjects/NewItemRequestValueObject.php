@@ -104,4 +104,9 @@ class NewItemRequestValueObject implements ItemRequestValueObjectInterface
 
         return $this->getProperties()['content'] ?? '';
     }
+
+    public function hasPhotos(): bool
+    {
+        return \count($this->getPhotos()) > 0;
+    }
 }

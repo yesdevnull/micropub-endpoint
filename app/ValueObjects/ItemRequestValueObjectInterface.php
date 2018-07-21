@@ -21,4 +21,8 @@ interface ItemRequestValueObjectInterface
     public function getFrontMatter(): Collection;
 
     public function getContent(): string;
+
+    public function hasPhotos(): bool;
+
+    public function getPhotos(): array;
 }

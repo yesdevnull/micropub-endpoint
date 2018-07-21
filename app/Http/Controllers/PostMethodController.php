@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Service\MediaService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Http\Request;
 
@@ -10,10 +11,24 @@ use Illuminate\Http\Request;
  */
 class PostMethodController extends Controller
 {
+    /**
+     * @var MediaService
+     */
+    private $mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
+
     public function index(Request $request)
     {
         /** @var ItemRequestValueObjectInterface $micropubRequestObject */
         $micropubRequestObject = $request->input('micropub');
+
+        if ($micropubRequestObject->hasPhotos()) {
+            $this->mediaService->uploadPhotos($micropubRequestObject->getPhotos());
+        }
 
         if (ItemRequestValueObjectInterface::ACTION_CREATE === $micropubRequestObject->getAction()) {
             $this->handleCreateItem($micropubRequestObject);

@@ -34,21 +34,16 @@ class ParseRequestMiddleware
     public function handle($request, \Closure $next)
     {
         if ($request->isJson()) {
-            // JSON object
-            $micropubRequest = $this->micropubRequestParser->createFromJsonRequest(
-                collect($request->json()->all())
-            );
+            // JSON object.
+            $micropubRequest = $this->micropubRequestParser->createFromJsonRequest($request);
         } else {
-            // $_POST object
-            $micropubRequest = $this->micropubRequestParser->createFromFormRequest(
-                collect($request->all())
-            );
+            // $_POST object.
+            $micropubRequest = $this->micropubRequestParser->createFromFormRequest($request);
         }
 
         // Replace the request input bag with the new Micropub request object.
         $request->replace([
             'micropub' => $micropubRequest,
-            'photos' => $request->allFiles(),
         ]);
 
         return $next($request);

@@ -4,7 +4,7 @@ namespace App\Parsers;
 
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use App\ValueObjects\NewItemRequestValueObject;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Webmozart\Assert\Assert;
 
@@ -15,8 +15,10 @@ class MicropubRequestParser
 {
     private const FLATTEN_KEYS = ['content', 'photo'];
 
-    public function createFromJsonRequest(Collection $parameters): ItemRequestValueObjectInterface
+    public function createFromJsonRequest(Request $request): ItemRequestValueObjectInterface
     {
+        $parameters = collect($request->json()->all());
+
         if ($parameters->has('type')) {
             $type = substr(
                 head($parameters->get('type')),
@@ -35,7 +37,8 @@ class MicropubRequestParser
             return new NewItemRequestValueObject(
                 $type,
                 $properties,
-                $commands
+                $commands,
+                $request->allFiles()
             );
         } elseif ($parameters->has('action')) {
             // process actions...
@@ -44,8 +47,10 @@ class MicropubRequestParser
         throw new BadRequestHttpException('Missing "type" or "action" from request.');
     }
 
-    public function createFromFormRequest(Collection $parameters): ItemRequestValueObjectInterface
+    public function createFromFormRequest(Request $request): ItemRequestValueObjectInterface
     {
+        $parameters = collect($request->all());
+
         if ($parameters->has('h')) {
             $type = $parameters->get('h');
 
@@ -57,7 +62,8 @@ class MicropubRequestParser
             return new NewItemRequestValueObject(
                 $type,
                 $properties,
-                $commands
+                $commands,
+                $request->allFiles()
             );
         }
 
@@ -78,8 +84,6 @@ class MicropubRequestParser
             if ($valuesMustBeArrays) {
                 Assert::isArray($propertyValue, "${propertyName} value must be an array.");
             }
-
-            //die(var_dump($propertyValue, $propertyName));
 
             if (0 !== strpos($propertyName, 'mp-')) {
                 if (\is_array($propertyValue) && \in_array($propertyName, self::FLATTEN_KEYS, true)) {

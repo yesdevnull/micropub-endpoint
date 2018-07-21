@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Filesystem\FilesystemServiceProvider;
+use Laravel\Lumen\Application;
+
 require_once __DIR__.'/../vendor/autoload.php';
 
 try {
@@ -38,6 +42,18 @@ $app = new Laravel\Lumen\Application(
 |
 */
 
+config([
+    'filesystems' => [
+        'default' => 'local',
+        'disks' => [
+            'local' => [
+                'driver' => 'local',
+                'root' => storage_path('app'),
+            ],
+        ],
+    ],
+]);
+
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class
@@ -59,10 +75,6 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//    App\Http\Middleware\ExampleMiddleware::class
-// ]);
-
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\AuthenticateMiddleware::class,
     'parse' => App\Http\Middleware\ParseRequestMiddleware::class,
@@ -79,7 +91,28 @@ $app->routeMiddleware([
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
+
+$app->singleton(
+    'filesystem',
+    function (Application $app) {
+        return $app->loadComponent(
+            'filesystems',
+            FilesystemServiceProvider::class,
+            'filesystem'
+        );
+    }
+);
+
+$app->bind(
+    FilesystemFactory::class,
+    function($app) {
+        return new \Illuminate\Filesystem\FilesystemManager($app);
+    }
+);
+
+$app->configure('filesystems');
+
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
