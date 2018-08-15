@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Providers;
+namespace App\ServiceProviders;
 
+use App\Contracts\BlogProvider;
+use App\Providers\HugoProvider;
 use App\Service\MediaService;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
                     'media'
                 );
             }
+        );
+
+        $this->app->bind(
+            BlogProvider::class,
+            HugoProvider::class
         );
     }
 }

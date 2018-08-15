@@ -33,6 +33,10 @@ class ParseRequestMiddleware
      */
     public function handle($request, \Closure $next)
     {
+        if ('config' === $request->get('q')) {
+            return $next($request);
+        }
+
         if ($request->isJson()) {
             // JSON object.
             $micropubRequest = $this->micropubRequestParser->createFromJsonRequest($request);

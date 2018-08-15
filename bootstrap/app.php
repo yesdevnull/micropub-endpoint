@@ -91,7 +91,7 @@ $app->routeMiddleware([
 |
 */
 
-$app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\ServiceProviders\AppServiceProvider::class);
 
 $app->singleton(
     'filesystem',
@@ -113,8 +113,8 @@ $app->bind(
 
 $app->configure('filesystems');
 
-// $app->register(App\Providers\AuthServiceProvider::class);
-// $app->register(App\Providers\EventServiceProvider::class);
+// $app->register(App\ServiceProviders\AuthServiceProvider::class);
+// $app->register(App\ServiceProviders\EventServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

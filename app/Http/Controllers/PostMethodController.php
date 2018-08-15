@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\BlogProvider;
+use App\Service\ItemWriterService;
 use App\Service\MediaService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Http\Request;
@@ -12,23 +14,41 @@ use Illuminate\Http\Request;
 class PostMethodController extends Controller
 {
     /**
+     * @var ItemWriterService
+     */
+    private $itemWriterService;
+
+    /**
      * @var MediaService
      */
     private $mediaService;
 
-    public function __construct(MediaService $mediaService)
-    {
+    /**
+     * @var BlogProvider
+     */
+    private $blogProvider;
+
+    /**
+     * PostMethodController constructor.
+     *
+     * @param ItemWriterService $itemWriterService
+     * @param MediaService      $mediaService
+     * @param BlogProvider      $blogProvider
+     */
+    public function __construct(
+        ItemWriterService $itemWriterService,
+        MediaService $mediaService,
+        BlogProvider $blogProvider
+    ) {
+        $this->itemWriterService = $itemWriterService;
         $this->mediaService = $mediaService;
+        $this->blogProvider = $blogProvider;
     }
 
     public function index(Request $request)
     {
         /** @var ItemRequestValueObjectInterface $micropubRequestObject */
         $micropubRequestObject = $request->input('micropub');
-
-        if ($micropubRequestObject->hasPhotos()) {
-            $this->mediaService->uploadPhotos($micropubRequestObject->getPhotos());
-        }
 
         if (ItemRequestValueObjectInterface::ACTION_CREATE === $micropubRequestObject->getAction()) {
             $this->handleCreateItem($micropubRequestObject);
@@ -48,6 +68,13 @@ class PostMethodController extends Controller
             $frontMatter['published'] = true;
         }
 
+        $frontMatter['photo'] = array_merge(
+            $frontMatterProperties['photo'] ?? [],
+            $newItem->getPhotos()
+        );
+
+        $slug = '';
+
         // This slug is derived from https://manton.org who uses the first 3 words of a post as the slug.
         if (!$frontMatterProperties->has('name') && !$frontMatterProperties->has('slug')) {
             // Get the first 100 characters so we don't do further operations on the entire content string.
@@ -58,7 +85,9 @@ class PostMethodController extends Controller
 
             $firstThreeWordsArray = \array_slice($words, 0, 3);
 
-            $slug = implode($firstThreeWordsArray);
+            $firstThreeWords = implode(' ', $firstThreeWordsArray);
+
+            $slug = str_slug($firstThreeWords, '-');
         }
 
         if ($frontMatterProperties->has('name') && !$frontMatterProperties->has('slug')) {
@@ -71,6 +100,25 @@ class PostMethodController extends Controller
 
         $frontMatter['slug'] = str_slug($slug, '-');
 
-        $frontMatter['date'] = (new \DateTime('now', env('APP_TIMEZONE')))->format('Y-m-d H:i:s');
+        $now = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
+
+        $frontMatter['date'] = $now->format(\DateTimeInterface::W3C);
+
+        $pathToWriteTo = $this->blogProvider->getContentPathForType($newItem->getType());
+
+        $fileContents = $this->itemWriterService->build($frontMatter->toArray(), $content);
+
+        // $filename = $frontMatter['slug'].'.md';
+
+        $filename = sprintf(
+            '%s-%s.md',
+            $now->format('Y-m-d'),
+            $frontMatter['slug']
+        );
+
+        $this->blogProvider->writeFile(
+            $fileContents,
+            $pathToWriteTo.'/'.$filename
+        );
     }
 }

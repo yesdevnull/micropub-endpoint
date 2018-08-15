@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\ResponseTrait;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class GetMethodController extends Controller
 {
-    public function index(Request $request): ResponseTrait
+    public function index(Request $request): Response
     {
         if (!$request->has('q')) {
             throw new BadRequestHttpException('Missing "q" parameter.');
