@@ -59,7 +59,6 @@ class PostMethodController extends Controller
     {
         $frontMatter = collect([]);
         $frontMatterProperties = $newItem->getFrontMatter();
-        //$frontMatter = collect($frontMatterProperties);
         $content = $newItem->getContent();
 
         if ($frontMatterProperties->has('post-status')) {
@@ -102,7 +101,7 @@ class PostMethodController extends Controller
 
         $now = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
 
-        $frontMatter['date'] = $now->format(\DateTimeInterface::W3C);
+        $frontMatter['date'] = $now->format(\DateTime::W3C);
 
         $pathToWriteTo = $this->blogProvider->getContentPathForType($newItem->getType());
 

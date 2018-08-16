@@ -16,8 +16,10 @@ class IndieAuthService implements IndieAuthServiceInterface
 {
     public function authenticate(Request $request): bool
     {
-        return true;
-        // Temporarily return true to avoid auth for now.
+        // Skip auth on local environments.
+        if ('local' === app()->environment()) {
+            return true;
+        }
 
         $client = new Client();
 
