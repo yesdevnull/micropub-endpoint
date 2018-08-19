@@ -7,6 +7,7 @@ use App\Service\ItemWriterService;
 use App\Service\MediaService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * Class PostMethodController
@@ -51,11 +52,20 @@ class PostMethodController extends Controller
         $micropubRequestObject = $request->input('micropub');
 
         if (ItemRequestValueObjectInterface::ACTION_CREATE === $micropubRequestObject->getAction()) {
-            $this->handleCreateItem($micropubRequestObject);
+            $url = $this->handleCreateItem($micropubRequestObject);
+
+            // Return an empty body with the URL as the "Location" header.
+            return new Response(
+                '',
+                201,
+                [
+                    'Location' => $url,
+                ]
+            );
         }
     }
 
-    private function handleCreateItem(ItemRequestValueObjectInterface $newItem)
+    private function handleCreateItem(ItemRequestValueObjectInterface $newItem): string
     {
         $frontMatter = collect([]);
         $frontMatterProperties = $newItem->getFrontMatter();
@@ -118,6 +128,14 @@ class PostMethodController extends Controller
         $this->blogProvider->writeFile(
             $fileContents,
             $pathToWriteTo.'/'.$filename
+        );
+
+        return sprintf(
+            '%s%d/%d/%s',
+            env('ME_URL'),
+            $now->format('Y'),
+            $now->format('m'),
+            $slug
         );
     }
 }
