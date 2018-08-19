@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use Illuminate\Contracts\Filesystem\Factory as FactoryContract;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -10,6 +12,11 @@ use Illuminate\Http\UploadedFile;
 class MediaService
 {
     /**
+     * @var FactoryContract|FilesystemManager
+     */
+    private $filesystemManager;
+
+    /**
      * @var string
      */
     private $baseUploadPath;
@@ -17,29 +24,68 @@ class MediaService
     /**
      * MediaService constructor.
      *
-     * @param string $baseUploadPath
+     * @param FactoryContract $filesystemManager
+     * @param string          $baseUploadPath
      */
-    public function __construct(string $baseUploadPath)
-    {
+    public function __construct(
+        FactoryContract $filesystemManager,
+        string $baseUploadPath
+    ) {
+        $this->filesystemManager = $filesystemManager;
         $this->baseUploadPath = $baseUploadPath;
+    }
+
+    /**
+     * Get the URL for the latest media upload.
+     *
+     * @return string
+     */
+    public function getLatestUpload(): string
+    {
+        $now = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
+
+        $files = $this->filesystemManager->files($now->format('Y'));
+
+        $filesAndModifiedTimes = [];
+
+        foreach ($files as $file) {
+            $filesAndModifiedTimes[$file] = \DateTime::createFromFormat(
+                'U',
+                $this->filesystemManager->lastModified($file)
+            );
+        }
+
+        if (0 === \count($files)) {
+            return '';
+        }
+
+        // Sort from newest to oldest.
+        uasort($filesAndModifiedTimes, function ($a, $b) {
+            return $a < $b;
+        });
+
+        reset($filesAndModifiedTimes);
+
+        $latestFile = key($filesAndModifiedTimes);
+
+        return $this->getFullUrlForAsset($latestFile);
     }
 
     /**
      * Get the folder for uploading media.
      *
-     * Note: this is relative to storage/app/
-     *
      * @return string
      */
     public function getUploadPath(): string
     {
-        $currentDate = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
+        $currentDate = new \DateTime(
+            'now',
+            new \DateTimeZone(env('APP_TIMEZONE'))
+        );
 
         $uploadPath = sprintf(
-            '%s/%d/%d/',
-            $this->baseUploadPath,
-            $currentDate->format('Y'),
-            $currentDate->format('m')
+            '%d/',
+            $currentDate->format('Y')
         );
 
         $this->checkFolder($uploadPath);
@@ -59,6 +105,24 @@ class MediaService
     public function getPublicPathForAsset(string $uploadedFile): string
     {
         return str_replace($this->baseUploadPath, '', $uploadedFile);
+    }
+
+    /**
+     * Return the public URL for the file.
+     *
+     * @param string $uploadedFile
+     *
+     * @return string
+     */
+    public function getFullUrlForAsset(string $uploadedFile): string
+    {
+        $trimmedFile = $this->getPublicPathForAsset($uploadedFile);
+
+        if ('/' !== $trimmedFile{0}) {
+            $trimmedFile = '/'.$trimmedFile;
+        }
+
+        return env('BASE_UPLOAD_URL').$trimmedFile;
     }
 
     /**
@@ -88,43 +152,28 @@ class MediaService
      */
     public function uploadPhoto(UploadedFile $file): string
     {
-        $filename = $file->getClientOriginalName();
-
-        if (file_exists($this->getFullyQualifiedUploadPath($filename))) {
-            // If the file exists, try appending a -1 to the end of the file name and start counting up if others exist.
-            $incrementor = 1;
-            $originalFilename = $this->filenameWithoutExtension($file->getClientOriginalName());
-
-            do {
-                $filename = $originalFilename.'-'.$incrementor.'.'.$file->guessClientExtension();
-
-                $incrementor++;
-            } while (file_exists($this->getFullyQualifiedUploadPath($filename)));
-        }
+        $filenameAndExtension = str_random(40).'.'.$file->guessExtension();
 
         $file->storeAs(
             $this->getUploadPath(),
-            $filename
+            $filenameAndExtension
         );
 
-        return env('BASE_UPLOAD_URL').$this->getPublicPathForAsset($this->getUploadPath().$filename);
-    }
-
-    /**
-     * Returns the name of a file without the extension.
-     *
-     * @param string $filename
-     *
-     * @return string
-     */
-    public function filenameWithoutExtension(string $filename): string
-    {
-        $filenameArray = explode('.', $filename);
-        // Pop the extension value of the array.
-        // This is so we can preserve filenames with periods in them (excluding the extension suffix)
-        array_pop($filenameArray);
-
-        return implode('', $filenameArray);
+        return $this->getFullUrlForAsset(
+            $this->getUploadPath().$filenameAndExtension
+        );
+        //
+        // return sprintf(
+        //     '%s%s',
+        //     env('BASE_UPLOAD_URL'),
+        //     $this->getPublicPathForAsset(
+        //         sprintf(
+        //             '%s%s',
+        //             $this->getUploadPath(),
+        //             $filenameAndExtension
+        //         )
+        //     )
+        // );
     }
 
     /**
@@ -136,19 +185,10 @@ class MediaService
      */
     private function checkFolder(string $path): bool
     {
-        if (file_exists($path)) {
+        if ($this->filesystemManager->exists($path)) {
             return true;
         }
 
-        return mkdir($path, 0777, true);
-    }
-
-    private function getFullyQualifiedUploadPath(string $filename): string
-    {
-        return app()->storagePath(sprintf(
-            'app/%s%s',
-            $this->getUploadPath(),
-            $filename
-        ));
+        return $this->filesystemManager->makeDirectory($path);
     }
 }

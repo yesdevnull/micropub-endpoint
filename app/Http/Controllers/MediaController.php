@@ -28,13 +28,27 @@ class MediaController extends Controller
     }
 
     /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function latestUpload(Request $request): JsonResponse
+    {
+        return new JsonResponse(
+            [
+                'url' => $this->mediaService->getLatestUpload(),
+            ]
+        );
+    }
+
+    /**
      * Handle uploading a photo to the media endpoint.
      *
      * @param Request $request
      *
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function upload(Request $request): JsonResponse
     {
         if (!$request->hasFile('file')) {
             throw new BadRequestHttpException('"file" parameter missing from media upload request.');

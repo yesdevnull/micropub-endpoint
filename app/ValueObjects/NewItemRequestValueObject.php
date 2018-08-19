@@ -87,21 +87,10 @@ class NewItemRequestValueObject implements ItemRequestValueObjectInterface
     public function getFrontMatter(): Collection
     {
         return collect($this->properties)->except('content');
-
-        // Arr::except(
-        //     $this->getProperties(),
-        //     [
-        //         'content',
-        //     ]
-        // );
     }
 
     public function getContent(): string
     {
-        // if (!array_key_exists('content', $this->getProperties())) {
-        //     return null;
-        // }
-
         return $this->getProperties()['content'] ?? '';
     }
 

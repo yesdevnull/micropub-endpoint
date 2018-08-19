@@ -43,11 +43,19 @@ $router->group(
             }
         );
 
+        $router->get(
+            '/media/',
+            [
+                'as' => 'media_latest',
+                'uses' => 'MediaController@latestUpload'
+            ]
+        );
+
         $router->post(
             '/media',
             [
-                'as' => 'media',
-                'uses' => 'MediaController@index',
+                'as' => 'media_upload',
+                'uses' => 'MediaController@upload',
             ]
         );
     }

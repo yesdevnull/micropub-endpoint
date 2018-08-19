@@ -6,6 +6,7 @@ use App\Contracts\BlogProvider;
 use App\Providers\HugoProvider;
 use App\Service\MediaService;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Lumen\Application;
 
 /**
  * Class AppServiceProvider
@@ -21,9 +22,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             MediaService::class,
-            function () {
+            function (Application $app) {
                 return new MediaService(
-                    'media'
+                    $app->make('filesystem'),
+                    env('BASE_UPLOAD_PATH')
                 );
             }
         );
