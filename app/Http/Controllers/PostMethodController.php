@@ -83,6 +83,9 @@ class PostMethodController extends Controller
         $frontMatterProperties = $newItem->getFrontMatter();
         $content = $newItem->getContent();
 
+        info('frontMatterProperties: '.print_r($frontMatterProperties, true));
+        info('content: '.print_r($content, true));
+
         if ($frontMatterProperties->has('post-status')) {
             $frontMatter['published'] = 'draft' !== $frontMatterProperties['post-status'];
         } else {

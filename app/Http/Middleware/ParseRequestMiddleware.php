@@ -45,10 +45,14 @@ class ParseRequestMiddleware
             $micropubRequest = $this->micropubRequestParser->createFromFormRequest($request);
         }
 
+        info('request: '.print_r($request->all()));
+
         // Replace the request input bag with the new Micropub request object.
         $request->replace([
             'micropub' => $micropubRequest,
         ]);
+
+        info('new request: '.print_r($request->all()));
 
         return $next($request);
     }
