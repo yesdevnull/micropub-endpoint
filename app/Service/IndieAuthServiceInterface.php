@@ -9,5 +9,10 @@ use Illuminate\Http\Request;
  */
 interface IndieAuthServiceInterface
 {
+    /**
+     * @param Request $request
+     *
+     * @return bool
+     */
     public function authenticate(Request $request): bool;
 }

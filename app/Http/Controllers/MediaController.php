@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\RebuildSiteEvent;
 use App\Service\MediaService;
+use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -13,6 +15,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class MediaController extends Controller
 {
     /**
+     * @var DispatcherContract
+     */
+    private $eventDispatcher;
+
+    /**
      * @var MediaService
      */
     private $mediaService;
@@ -20,10 +27,14 @@ class MediaController extends Controller
     /**
      * MediaController constructor.
      *
-     * @param MediaService $mediaService
+     * @param DispatcherContract $eventDispatcher
+     * @param MediaService       $mediaService
      */
-    public function __construct(MediaService $mediaService)
-    {
+    public function __construct(
+        DispatcherContract $eventDispatcher,
+        MediaService $mediaService
+    ) {
+        $this->eventDispatcher = $eventDispatcher;
         $this->mediaService = $mediaService;
     }
 
@@ -55,6 +66,11 @@ class MediaController extends Controller
         }
 
         $url = $this->mediaService->uploadPhoto($request->file('file'));
+
+        // Even though we're only uploading a file we need to rebuild the site because it copies the actual file across.
+        $this->eventDispatcher->dispatch(
+            new RebuildSiteEvent()
+        );
 
         return new JsonResponse(
             [
