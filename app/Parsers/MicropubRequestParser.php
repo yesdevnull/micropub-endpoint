@@ -29,6 +29,7 @@ class MicropubRequestParser
     public function createFromJsonRequest(Request $request): ItemRequestValueObjectInterface
     {
         $parameters = collect($request->json()->all());
+        info('json :'.print_r($parameters, true));
 
         if ($parameters->has('type')) {
             $type = substr(
