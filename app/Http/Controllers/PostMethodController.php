@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\BlogProvider;
+use App\Events\RebuildSiteEvent;
 use App\Service\ItemWriterService;
 use App\Service\MediaService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
+use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -14,6 +16,11 @@ use Illuminate\Http\Response;
  */
 class PostMethodController extends Controller
 {
+    /**
+     * @var DispatcherContract
+     */
+    private $eventDispatcher;
+
     /**
      * @var ItemWriterService
      */
@@ -32,15 +39,18 @@ class PostMethodController extends Controller
     /**
      * PostMethodController constructor.
      *
-     * @param ItemWriterService $itemWriterService
-     * @param MediaService      $mediaService
-     * @param BlogProvider      $blogProvider
+     * @param DispatcherContract $eventDispatcher
+     * @param ItemWriterService  $itemWriterService
+     * @param MediaService       $mediaService
+     * @param BlogProvider       $blogProvider
      */
     public function __construct(
+        DispatcherContract $eventDispatcher,
         ItemWriterService $itemWriterService,
         MediaService $mediaService,
         BlogProvider $blogProvider
     ) {
+        $this->eventDispatcher = $eventDispatcher;
         $this->itemWriterService = $itemWriterService;
         $this->mediaService = $mediaService;
         $this->blogProvider = $blogProvider;
@@ -63,6 +73,8 @@ class PostMethodController extends Controller
                 ]
             );
         }
+
+        // TBA...
     }
 
     private function handleCreateItem(ItemRequestValueObjectInterface $newItem): string
@@ -84,7 +96,7 @@ class PostMethodController extends Controller
 
         $slug = '';
 
-        // This slug is derived from https://manton.org who uses the first 3 words of a post as the slug.
+        // This slug is derived from https://manton.org which uses the first 3 words of a post as the slug.
         if (!$frontMatterProperties->has('name') && !$frontMatterProperties->has('slug')) {
             // Get the first 100 characters so we don't do further operations on the entire content string.
             $startText = mb_substr($content, 0, 100);
@@ -130,8 +142,12 @@ class PostMethodController extends Controller
             $pathToWriteTo.'/'.$filename
         );
 
+        $this->eventDispatcher->dispatch(
+            new RebuildSiteEvent()
+        );
+
         return sprintf(
-            '%s%d/%d/%s',
+            '%s%d/%02d/%s/',
             env('ME_URL'),
             $now->format('Y'),
             $now->format('m'),

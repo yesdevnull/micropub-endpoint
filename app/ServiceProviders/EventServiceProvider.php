@@ -2,8 +2,13 @@
 
 namespace App\ServiceProviders;
 
+use App\Events\RebuildSiteEvent;
+use App\Listeners\RebuildSiteListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
+/**
+ * Class EventServiceProvider
+ */
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -12,8 +17,8 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\ExampleEvent' => [
-            'App\Listeners\ExampleListener',
+        RebuildSiteEvent::class => [
+            RebuildSiteListener::class,
         ],
     ];
 }
