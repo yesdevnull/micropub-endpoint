@@ -66,6 +66,7 @@ class MicropubRequestParser
     public function createFromFormRequest(Request $request): ItemRequestValueObjectInterface
     {
         $parameters = collect($request->all());
+        info('form: '.print_r($parameters, true));
 
         if ($parameters->has('h')) {
             $type = $parameters->get('h');
