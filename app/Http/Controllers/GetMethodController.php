@@ -30,7 +30,7 @@ class GetMethodController extends Controller
     private function getConfigAction(): JsonResponse
     {
         return JsonResponse::create([
-            'media-endpoint' => route('media'),
+            'media-endpoint' => route('media_upload'),
         ]);
     }
 }
