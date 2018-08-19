@@ -100,7 +100,7 @@ class PostMethodController extends Controller
         $slug = '';
 
         // This slug is derived from https://manton.org which uses the first 3 words of a post as the slug.
-        if (!$frontMatterProperties->has('name') && !$frontMatterProperties->has('slug')) {
+        if ('' === $frontMatterProperties->get('name', '') && '' === $frontMatterProperties->get('slug', '')) {
             // Get the first 100 characters so we don't do further operations on the entire content string.
             $startText = mb_substr($content, 0, 100);
 
@@ -114,11 +114,11 @@ class PostMethodController extends Controller
             $slug = str_slug($firstThreeWords, '-');
         }
 
-        if ($frontMatterProperties->has('name') && !$frontMatterProperties->has('slug')) {
+        if ('' !== $frontMatterProperties->get('name', '') && '' === $frontMatterProperties->get('slug', '')) {
             $slug = $frontMatterProperties['name'];
         }
 
-        if ($frontMatterProperties->has('slug')) {
+        if ('' !== $frontMatterProperties->get('slug', '')) {
             $slug = $frontMatterProperties['slug'];
         }
 
