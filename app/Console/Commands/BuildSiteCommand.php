@@ -18,14 +18,14 @@ class BuildSiteCommand extends Command
      */
     public function handle()
     {
-        $output = '';
+        $output = [];
         $returnCode = null;
 
         exec(env('SITE_BUILD_COMMAND'), $output, $returnCode);
 
-        $this->info(
-            print_r($output, true)
-        );
+        foreach ($output as $outputRow) {
+            $this->info($outputRow);
+        }
 
         return $returnCode;
     }
