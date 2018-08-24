@@ -23,6 +23,8 @@ class IndieAuthService implements IndieAuthServiceInterface
 
         $client = new Client();
 
+        app('log')->info('Request Headers: '.print_r($request->headers->all(), true));
+
         try {
             $authRequest = $client->get(
                 env('INDIEAUTH_ENDPOINT'),
@@ -36,10 +38,10 @@ class IndieAuthService implements IndieAuthServiceInterface
                 ]
             );
         } catch (RequestException $e) {
-            echo Psr7\str($e->getRequest())."\n";
+            app('log')->error('Psr Request: '.Psr7\str($e->getRequest()));
 
             if ($e->hasResponse()) {
-                echo Psr7\str($e->getResponse())."\n";
+                app('log')->error('Psr Response: '.Psr7\str($e->getResponse()));
             }
 
             return false;
@@ -49,6 +51,13 @@ class IndieAuthService implements IndieAuthServiceInterface
 
         if (isset($response['error'])) {
             throw new AuthenticationException($response['error']);
+        }
+
+        if (null === $response['me']) {
+            app('log')->error('Psr Response: '.Psr7\str($authRequest));
+            app('log')->error('IndieAuth response: '.print_r($response, true));
+
+            return false;
         }
 
         Assert::eq($response['me'], env('ME_URL'));
