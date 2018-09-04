@@ -21,11 +21,16 @@ class BuildSiteCommand extends Command
         $output = [];
         $returnCode = null;
 
+        app('log')->info('Building site...');
+
         exec(env('SITE_BUILD_COMMAND'), $output, $returnCode);
 
         foreach ($output as $outputRow) {
             $this->info($outputRow);
+            app('log')->info($outputRow);
         }
+
+        app('log')->info('Return code: '.$returnCode);
 
         return $returnCode;
     }
