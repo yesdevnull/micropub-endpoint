@@ -15,6 +15,8 @@ interface ItemRequestValueObjectInterface
 
     public function getType(): string;
 
+    public function getCommands(): array;
+
     /**
      * Get all properties for the item front matter, excluding the content.
      *

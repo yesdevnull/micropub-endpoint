@@ -81,6 +81,7 @@ class PostMethodController extends Controller
     {
         $frontMatter = collect([]);
         $frontMatterProperties = $newItem->getFrontMatter();
+        $commands = $newItem->getCommands();
         $content = $newItem->getContent();
 
         info('frontMatterProperties: '.print_r($frontMatterProperties, true));
@@ -100,7 +101,7 @@ class PostMethodController extends Controller
         $slug = '';
 
         // This slug is derived from https://manton.org which uses the first 3 words of a post as the slug.
-        if ('' === $frontMatterProperties->get('name', '') && '' === $frontMatterProperties->get('slug', '')) {
+        if (!array_key_exists('mp-slug', $commands) && '' === $frontMatterProperties->get('name', '')) {
             // Get the first 100 characters so we don't do further operations on the entire content string.
             $startText = mb_substr($content, 0, 100);
 
@@ -114,12 +115,12 @@ class PostMethodController extends Controller
             $slug = str_slug($firstThreeWords, '-');
         }
 
-        if ('' !== $frontMatterProperties->get('name', '') && '' === $frontMatterProperties->get('slug', '')) {
+        if (!array_key_exists('mp-slug', $commands) && '' !== $frontMatterProperties->get('name', '')) {
             $slug = $frontMatterProperties['name'];
         }
 
-        if ('' !== $frontMatterProperties->get('slug', '')) {
-            $slug = $frontMatterProperties['slug'];
+        if (array_key_exists('mp-slug', $commands) && '' !== $commands['mp-slug']) {
+            $slug = $commands['mp-slug'];
         }
 
         $frontMatter['slug'] = str_slug($slug, '-');
