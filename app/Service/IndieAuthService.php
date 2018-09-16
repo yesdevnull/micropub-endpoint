@@ -16,8 +16,8 @@ class IndieAuthService implements IndieAuthServiceInterface
 {
     public function authenticate(Request $request): bool
     {
-        // Skip auth on local environments.
-        if ('local' === app()->environment()) {
+        // Skip auth on local and testing environments.
+        if (app()->environment('local', 'testing')) {
             return true;
         }
 
