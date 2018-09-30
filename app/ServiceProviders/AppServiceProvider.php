@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
             function (Application $app) {
                 return new MediaService(
                     $app->make('filesystem'),
+                    $app->make('image'),
                     env('BASE_UPLOAD_PATH')
                 );
             }

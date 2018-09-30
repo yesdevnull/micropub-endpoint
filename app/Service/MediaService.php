@@ -5,6 +5,8 @@ namespace App\Service;
 use Illuminate\Contracts\Filesystem\Factory as FactoryContract;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
+use Intervention\Image\Constraint;
+use Intervention\Image\ImageManager;
 
 /**
  * Class MediaService
@@ -15,6 +17,11 @@ class MediaService
      * @var FactoryContract|FilesystemManager
      */
     private $filesystemManager;
+
+    /**
+     * @var ImageManager
+     */
+    private $imageManager;
 
     /**
      * @var string
@@ -29,9 +36,11 @@ class MediaService
      */
     public function __construct(
         FactoryContract $filesystemManager,
+        ImageManager $imageManager,
         string $baseUploadPath
     ) {
         $this->filesystemManager = $filesystemManager;
+        $this->imageManager = $imageManager;
         $this->baseUploadPath = $baseUploadPath;
     }
 
@@ -154,26 +163,32 @@ class MediaService
     {
         $filenameAndExtension = str_random(40).'.'.$file->guessExtension();
 
+        $this
+            ->imageManager
+            ->make($file)
+            // Downscale the image to 1200 wide while maintaining the aspect ratio.
+            ->resize(1200, null, function (Constraint $constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })
+            ->save(
+                sprintf(
+                    '%s/%s',
+                    $this->filesystemManager->path(
+                        $this->getUploadPath()
+                    ),
+                    $filenameAndExtension
+                )
+            )->destroy();
+
         $file->storeAs(
             $this->getUploadPath(),
-            $filenameAndExtension
+            $filenameAndExtension.'.original'
         );
 
         return $this->getFullUrlForAsset(
             $this->getUploadPath().$filenameAndExtension
         );
-        //
-        // return sprintf(
-        //     '%s%s',
-        //     env('BASE_UPLOAD_URL'),
-        //     $this->getPublicPathForAsset(
-        //         sprintf(
-        //             '%s%s',
-        //             $this->getUploadPath(),
-        //             $filenameAndExtension
-        //         )
-        //     )
-        // );
     }
 
     /**

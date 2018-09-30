@@ -52,6 +52,9 @@ config([
             ],
         ],
     ],
+    'image' => [
+        'driver' => 'Imagick',
+    ]
 ]);
 
 $app->singleton(
@@ -93,6 +96,7 @@ $app->routeMiddleware([
 
 $app->register(App\ServiceProviders\AppServiceProvider::class);
 $app->register(App\ServiceProviders\EventServiceProvider::class);
+$app->register(Intervention\Image\ImageServiceProvider::class);
 
 $app->singleton(
     'filesystem',
