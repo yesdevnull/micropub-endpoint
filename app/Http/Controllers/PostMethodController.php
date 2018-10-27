@@ -84,6 +84,11 @@ class PostMethodController extends Controller
         $commands = $newItem->getCommands();
         $content = $newItem->getContent();
 
+        $now = new \DateTime(
+            'now',
+            new \DateTimeZone(env('APP_TIMEZONE'))
+        );
+
         info('frontMatterProperties: '.print_r($frontMatterProperties, true));
         info('content: '.print_r($content, true));
 
@@ -98,10 +103,10 @@ class PostMethodController extends Controller
             $newItem->getPhotos()
         );
 
-        $slug = '';
+        $slug = $now->format('l jS');
 
         // This slug is derived from https://manton.org which uses the first 3 words of a post as the slug.
-        if (!array_key_exists('mp-slug', $commands) && '' === $frontMatterProperties->get('name', '')) {
+        if ('' !== $content && !array_key_exists('mp-slug', $commands) && '' === $frontMatterProperties->get('name', '')) {
             // Get the first 100 characters so we don't do further operations on the entire content string.
             $startText = mb_substr($content, 0, 100);
 
@@ -125,15 +130,11 @@ class PostMethodController extends Controller
 
         $frontMatter['slug'] = str_slug($slug, '-');
 
-        $now = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
-
         $frontMatter['date'] = $now->format(\DateTime::W3C);
 
         $pathToWriteTo = $this->blogProvider->getContentPathForType($newItem->getType());
 
         $fileContents = $this->itemWriterService->build($frontMatter->toArray(), $content);
-
-        // $filename = $frontMatter['slug'].'.md';
 
         $filename = sprintf(
             '%s-%s.md',

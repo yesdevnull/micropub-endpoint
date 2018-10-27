@@ -102,4 +102,30 @@ class PostMediaTest extends TestCase
             )
         );
     }
+
+    public function testNewPostWithImageAndNoText()
+    {
+        Event::fake();
+
+        $this->post(
+            '/',
+            [
+                'h' => 'entry',
+                'photo' => 'https://fake.photo/here.jpg',
+            ]
+        );
+
+        $now = new \DateTime();
+
+        Event::assertDispatched(RebuildSiteEvent::class);
+
+        $this->assertFileExists(
+            sprintf(
+                '%s/%s-%s.md',
+                $this->app[BlogProvider::class]->getContentPathForType('entry'),
+                $now->format('Y-m-d'),
+                strtolower($now->format('l-jS'))
+            )
+        );
+    }
 }
