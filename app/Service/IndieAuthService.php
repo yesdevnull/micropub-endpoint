@@ -60,6 +60,7 @@ class IndieAuthService implements IndieAuthServiceInterface
             return false;
         }
 
+        // Assert the "me" URL we sent to the IndieAuth URL is the same one we got sent back.
         Assert::eq($response['me'], env('ME_URL'));
 
         Assert::keyExists($response, 'scope');

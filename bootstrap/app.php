@@ -118,8 +118,6 @@ $app->bind(
 
 $app->configure('filesystems');
 
-// $app->register(App\ServiceProviders\AuthServiceProvider::class);
-
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

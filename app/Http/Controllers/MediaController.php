@@ -7,6 +7,7 @@ use App\Service\MediaService;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
@@ -39,12 +40,27 @@ class MediaController extends Controller
     }
 
     /**
-     * @param Request $request
+     * Fetch the URL for the most recent media upload.
+     *
+     * Note that we return a 400 error and not a 404.  A 404 would declare that the
+     * *endpoint* doesn't exist when it in fact does.
      *
      * @return JsonResponse
      */
-    public function latestUpload(Request $request): JsonResponse
+    public function latestUpload(): JsonResponse
     {
+        $url = $this->mediaService->getLatestUpload();
+
+        if ('' === $url) {
+            return new JsonResponse(
+                [
+                    'error' => 'invalid_request',
+                    'error_description' => 'Unable to find the last media upload.',
+                ],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
         return new JsonResponse(
             [
                 'url' => $this->mediaService->getLatestUpload(),
@@ -76,7 +92,7 @@ class MediaController extends Controller
             [
                 'url' => $url,
             ],
-            201,
+            Response::HTTP_CREATED,
             [
                 'Location' => $url,
             ]

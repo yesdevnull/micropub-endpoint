@@ -7,6 +7,7 @@ use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
 use Intervention\Image\Constraint;
 use Intervention\Image\ImageManager;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class MediaService
@@ -51,33 +52,29 @@ class MediaService
      */
     public function getLatestUpload(): string
     {
-        $now = new \DateTime('now', new \DateTimeZone(env('APP_TIMEZONE')));
+        $now = new \DateTime(
+            'now',
+            new \DateTimeZone(env('APP_TIMEZONE'))
+        );
 
-        $files = $this->filesystemManager->files($now->format('Y'));
+        $files = Finder::create()
+            ->files()
+            ->in($this->baseUploadPath.'/'.$now->format('Y'))
+            ->in($this->baseUploadPath.'/'.$now->modify('last year')->format('Y'))
+            ->notName('*.original')
+            ->notName('*.webp')
+            // Get the newest modified file (sortByModifiedTime() gets the oldest).
+            ->sort(function (\SplFileInfo $a, \SplFileInfo $b) {
+                return $b->getMTime() - $a->getMTime();
+            });
 
-        $filesAndModifiedTimes = [];
-
-        foreach ($files as $file) {
-            $filesAndModifiedTimes[$file] = \DateTime::createFromFormat(
-                'U',
-                $this->filesystemManager->lastModified($file)
+        if ($files->hasResults()) {
+            return $this->getFullUrlForAsset(
+                $files->getIterator()->current()->getPathname()
             );
         }
 
-        if (0 === \count($files)) {
-            return '';
-        }
-
-        // Sort from newest to oldest.
-        uasort($filesAndModifiedTimes, function ($a, $b) {
-            return $a < $b;
-        });
-
-        reset($filesAndModifiedTimes);
-
-        $latestFile = key($filesAndModifiedTimes);
-
-        return $this->getFullUrlForAsset($latestFile);
+        return '';
     }
 
     /**
@@ -181,6 +178,7 @@ class MediaService
                 )
             )->destroy();
 
+        // Save a copy of the original with a special suffix.
         $file->storeAs(
             $this->getUploadPath(),
             $filenameAndExtension.'.original'
