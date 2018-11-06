@@ -29,8 +29,6 @@ $app = new Laravel\Lumen\Application(
 
 $app->withFacades();
 
-// $app->withEloquent();
-
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings
@@ -41,21 +39,6 @@ $app->withFacades();
 | your own bindings here if you like or you can make another file.
 |
 */
-
-config([
-    'filesystems' => [
-        'default' => 'local',
-        'disks' => [
-            'local' => [
-                'driver' => 'local',
-                'root' => env('BASE_UPLOAD_PATH'),
-            ],
-        ],
-    ],
-    'image' => [
-        'driver' => 'Imagick',
-    ]
-]);
 
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
@@ -117,6 +100,22 @@ $app->bind(
 );
 
 $app->configure('filesystems');
+
+// Config for Filesystem must be set _after_ adding it to the Service Container.
+config([
+    'filesystems' => [
+        'default' => 'local',
+        'disks' => [
+            'local' => [
+                'driver' => 'local',
+                'root' => env('BASE_UPLOAD_PATH'),
+            ],
+        ],
+    ],
+    'image' => [
+        'driver' => 'Imagick',
+    ]
+]);
 
 /*
 |--------------------------------------------------------------------------
