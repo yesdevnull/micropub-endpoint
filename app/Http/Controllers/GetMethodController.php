@@ -12,6 +12,13 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class GetMethodController extends Controller
 {
+    /**
+     * This endpoint is used for querying the server with the q=config query string.
+     *
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         if (!$request->has('q')) {
@@ -27,6 +34,13 @@ class GetMethodController extends Controller
         throw new BadRequestHttpException('Invalid "q" value provided.');
     }
 
+    /**
+     * Returns the Micropub server configuration array.
+     *
+     * @see https://www.w3.org/TR/micropub/#configuration
+     *
+     * @return JsonResponse
+     */
     private function getConfigAction(): JsonResponse
     {
         return JsonResponse::create([

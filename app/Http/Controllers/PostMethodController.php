@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Contracts\BlogProvider;
 use App\Events\RebuildSiteEvent;
 use App\Service\ItemWriterService;
-use App\Service\MediaService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\Request;
@@ -27,11 +26,6 @@ class PostMethodController extends Controller
     private $itemWriterService;
 
     /**
-     * @var MediaService
-     */
-    private $mediaService;
-
-    /**
      * @var BlogProvider
      */
     private $blogProvider;
@@ -41,18 +35,15 @@ class PostMethodController extends Controller
      *
      * @param DispatcherContract $eventDispatcher
      * @param ItemWriterService  $itemWriterService
-     * @param MediaService       $mediaService
      * @param BlogProvider       $blogProvider
      */
     public function __construct(
         DispatcherContract $eventDispatcher,
         ItemWriterService $itemWriterService,
-        MediaService $mediaService,
         BlogProvider $blogProvider
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->itemWriterService = $itemWriterService;
-        $this->mediaService = $mediaService;
         $this->blogProvider = $blogProvider;
     }
 
@@ -110,6 +101,9 @@ class PostMethodController extends Controller
             // Get the first 100 characters so we don't do further operations on the entire content string.
             $startText = mb_substr($content, 0, 100);
 
+            // Remove Markdown URLs and replace them with the name of the URL.
+            $startText = preg_replace('/\[([^\]]+)\](\([^\)]+\))/', '$1', $startText);
+
             // Split string by space characters (one or more).
             $words = preg_split("/[\s]+/", $startText);
 
@@ -120,7 +114,7 @@ class PostMethodController extends Controller
             $slug = str_slug($firstThreeWords, '-');
         }
 
-        if (!array_key_exists('mp-slug', $commands) && '' !== $frontMatterProperties->get('name', '')) {
+        if (!array_key_exists('mp-slug', $commands) && $frontMatterProperties->has('name')) {
             $slug = $frontMatterProperties['name'];
         }
 
@@ -131,6 +125,10 @@ class PostMethodController extends Controller
         $frontMatter['slug'] = str_slug($slug, '-');
 
         $frontMatter['date'] = $now->format(\DateTime::W3C);
+
+        if ($frontMatterProperties->has('name')) {
+            $frontMatter['title'] = $frontMatterProperties->get('name');
+        }
 
         $pathToWriteTo = $this->blogProvider->getContentPathForType($newItem->getType());
 
@@ -156,7 +154,7 @@ class PostMethodController extends Controller
             env('ME_URL'),
             $now->format('Y'),
             $now->format('m'),
-            $slug
+            $frontMatter['slug']
         );
     }
 }

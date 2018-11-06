@@ -33,6 +33,7 @@ class MediaService
      * MediaService constructor.
      *
      * @param FactoryContract $filesystemManager
+     * @param ImageManager    $imageManager
      * @param string          $baseUploadPath
      */
     public function __construct(
@@ -48,7 +49,7 @@ class MediaService
     /**
      * Get the URL for the latest media upload.
      *
-     * @return string
+     * @return string URL for the latest media upload, or empty string if no assets found.
      */
     public function getLatestUpload(): string
     {
@@ -59,8 +60,11 @@ class MediaService
 
         $files = Finder::create()
             ->files()
+            // Use the current year and last year in case we do this query on January 1st
+            // and the last image uploaded was 31st December the prior year.
             ->in($this->baseUploadPath.'/'.$now->format('Y'))
             ->in($this->baseUploadPath.'/'.$now->modify('last year')->format('Y'))
+            // Exclude our WebP optimised and original asset versions.
             ->notName('*.original')
             ->notName('*.webp')
             // Get the newest modified file (sortByModifiedTime() gets the oldest).
@@ -80,7 +84,7 @@ class MediaService
     /**
      * Get the folder for uploading media.
      *
-     * @return string
+     * @return string Current year and month folders to store assets in.
      */
     public function getUploadPath(): string
     {
@@ -100,13 +104,15 @@ class MediaService
     }
 
     /**
-     * Return the upload destination for the file.
+     * Return the upload destination for the asset.
      *
      * We append the result of this to the "BASE_UPLOAD_URL" URL.
      *
-     * @param string $uploadedFile
+     * Replaces /absolute/path/ in /absolute/path/to/file.ext with '' so it becomes to/file.ext
      *
-     * @return string
+     * @param string $uploadedFile Absolute path to asset.
+     *
+     * @return string Asset name and containing folder.
      */
     public function getPublicPathForAsset(string $uploadedFile): string
     {
@@ -114,11 +120,11 @@ class MediaService
     }
 
     /**
-     * Return the public URL for the file.
+     * Return the public URL for the asset.
      *
-     * @param string $uploadedFile
+     * @param string $uploadedFile Absolute path to the asset.
      *
-     * @return string
+     * @return string URL for asset.
      */
     public function getFullUrlForAsset(string $uploadedFile): string
     {
@@ -134,9 +140,9 @@ class MediaService
     /**
      * Upload an array of photos.
      *
-     * @param UploadedFile[] $photos
+     * @param UploadedFile[] $photos Array of assets to be uploaded and persisted.
      *
-     * @return array
+     * @return array URLs of newly uploaded assets.
      */
     public function uploadPhotos(array $photos): array
     {
@@ -152,9 +158,9 @@ class MediaService
     /**
      * Save an uploaded file to the media folder and returns its "public" URL.
      *
-     * @param UploadedFile $file
+     * @param UploadedFile $file File before it's been resized and persisted.
      *
-     * @return string
+     * @return string URL for the newly uploaded asset.
      */
     public function uploadPhoto(UploadedFile $file): string
     {
@@ -192,9 +198,9 @@ class MediaService
     /**
      * Ensure a folder exists and make it if it doesn't.
      *
-     * @param string $path
+     * @param string $path Directory relative to the root path of the filesystem manager.
      *
-     * @return bool
+     * @return bool True if it exists (or was created and now exists), false otherwise.
      */
     private function checkFolder(string $path): bool
     {

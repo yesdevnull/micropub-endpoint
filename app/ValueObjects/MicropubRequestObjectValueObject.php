@@ -2,6 +2,8 @@
 
 namespace App\ValueObjects;
 
+use Webmozart\Assert\Assert;
+
 /**
  * Class MicropubRequestObjectValueObject
  */
@@ -11,8 +13,19 @@ class MicropubRequestObjectValueObject
     public const ACTION_UPDATE = 'UPDATE';
     public const ACTION_DELETE = 'DELETE';
     public const ACTION_UNDELETE = 'UNDELETE';
+    // Micropub Object Actions.
+    public const ACTIONS = [
+        self::ACTION_CREATE,
+        self::ACTION_UPDATE,
+        self::ACTION_DELETE,
+        self::ACTION_UNDELETE,
+    ];
 
     public const TYPE_POST = 'entry';
+    // Micropub Object Types.
+    public const TYPES = [
+        self::TYPE_POST,
+    ];
 
     private $action;
 
@@ -31,6 +44,9 @@ class MicropubRequestObjectValueObject
      */
     private $properties;
 
+    /**
+     * @var array Array of commands for the Micropub server for the current object.
+     */
     private $commands;
 
     /**
@@ -58,9 +74,35 @@ class MicropubRequestObjectValueObject
         array $replace = [],
         array $delete = []
     ) {
+        Assert::oneOf(
+            $action,
+            self::ACTIONS,
+            sprintf(
+                'Micropub request action must be one of [%s], "%s" supplied.',
+                implode(', ', self::ACTIONS),
+                $action
+            )
+        );
         $this->action = $action;
+
+        Assert::oneOf(
+            $type,
+            self::TYPES,
+            sprintf(
+                'Micropub object request type must be one of [%s], "%s" supplied.',
+                implode(', ', self::TYPES),
+                $type
+            )
+        );
         $this->type = $type;
+
+        // Arbitrary minimum length for the URL.
+        Assert::minLength(
+            $url,
+            3
+        );
         $this->url = $url;
+
         $this->properties = $properties;
         $this->commands = $commands;
         $this->add = $add;

@@ -40,26 +40,32 @@ class PostMediaTest extends TestCase
 
         Event::assertDispatched(RebuildSiteEvent::class);
 
-        $this->assertFileExists(
-            sprintf(
-                '%s/%s-%s.md',
-                $this->app[BlogProvider::class]->getContentPathForType('entry'),
-                $now->format('Y-m-d'),
-                $slug
-            )
+        $this->assertFileExists($this->generateFilename('entry', $now, $slug));
+        $this->assertResponseStatus(201);
+        $this->seeHeader('Location', $this->generateUrl($now, $slug));
+    }
+
+    public function testNewPostIgnoresUrlsInPostBodyForSlug()
+    {
+        Event::fake();
+
+        $this->post(
+            '/',
+            [
+                'h' => 'entry',
+                'content' => '[The Smoker Channels](https://overcast.fm/+B7NCosNIE) is one of my favourite podcast episodes of all time.  Dogs chasing cats.',
+            ]
         );
 
+        $expectedSlug = 'the-smoker-channels';
+
+        $now = new \DateTime();
+
+        Event::assertDispatched(RebuildSiteEvent::class);
+
+        $this->assertFileExists($this->generateFilename('entry', $now, $expectedSlug));
         $this->assertResponseStatus(201);
-        $this->seeHeader(
-            'Location',
-            sprintf(
-                '%s%d/%02d/%s/',
-                env('ME_URL'),
-                $now->format('Y'),
-                $now->format('m'),
-                $slug
-            )
-        );
+        $this->seeHeader('Location', $this->generateUrl($now, $expectedSlug));
     }
 
     public function testNewPostWithCustomSlugUsingFormInput()
@@ -81,24 +87,38 @@ class PostMediaTest extends TestCase
 
         Event::assertDispatched(RebuildSiteEvent::class);
 
-        $this->assertFileExists(
-            sprintf(
-                '%s/%s-%s.md',
-                $this->app[BlogProvider::class]->getContentPathForType('entry'),
-                $now->format('Y-m-d'),
-                $slug
-            )
+        $this->assertFileExists($this->generateFilename('entry', $now, $slug));
+        $this->assertResponseStatus(201);
+        $this->seeHeader('Location', $this->generateUrl($now, $slug));
+    }
+
+    public function testNewPostWithCustomTitleUsingFormInput()
+    {
+        Event::fake();
+
+        $title = 'My Very Cool Post';
+        $slug = 'my-very-cool-post';
+
+        $this->post(
+            '/',
+            [
+                'h' => 'entry',
+                'name' => $title,
+                'content' => 'This is a lovely test post that demonstrates content.',
+            ]
         );
 
+        $now = new \DateTime();
+
+        Event::assertDispatched(RebuildSiteEvent::class);
+
+        $this->assertFileExists($this->generateFilename('entry', $now, $slug));
         $this->assertResponseStatus(201);
-        $this->seeHeader(
-            'Location',
-            sprintf(
-                '%s%d/%02d/%s/',
-                env('ME_URL'),
-                $now->format('Y'),
-                $now->format('m'),
-                $slug
+        $this->seeHeader('Location', $this->generateUrl($now, $slug));
+        $this->assertContains(
+            "title: '${title}'",
+            file_get_contents(
+                $this->generateFilename('entry', $now, $slug)
             )
         );
     }
@@ -119,13 +139,32 @@ class PostMediaTest extends TestCase
 
         Event::assertDispatched(RebuildSiteEvent::class);
 
-        $this->assertFileExists(
-            sprintf(
-                '%s/%s-%s.md',
-                $this->app[BlogProvider::class]->getContentPathForType('entry'),
-                $now->format('Y-m-d'),
-                strtolower($now->format('l-jS'))
-            )
+        $this->assertFileExists($this->generateFilename('entry', $now, strtolower($now->format('l-jS'))));
+    }
+
+    private function generateUrl(
+        \DateTimeInterface $now,
+        string $slug
+    ): string {
+        return sprintf(
+            '%s%d/%d/%s/',
+            env('ME_URL'),
+            $now->format('Y'),
+            $now->format('m'),
+            $slug
+        );
+    }
+
+    private function generateFilename(
+        string $type,
+        \DateTimeInterface $now,
+        string $slug
+    ): string {
+        return sprintf(
+            '%s/%s-%s.md',
+            $this->app[BlogProvider::class]->getContentPathForType($type),
+            $now->format('Y-m-d'),
+            $slug
         );
     }
 }
