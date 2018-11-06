@@ -57,13 +57,22 @@ class MediaService
             'now',
             new \DateTimeZone(env('APP_TIMEZONE'))
         );
+        $lastYear = (clone $now)->modify('last year');
+
+        // Use the current year and last year in case we do this query on January 1st
+        // and the last image uploaded was 31st December the prior year.
+        $dirs = [
+            $this->baseUploadPath.'/'.$now->format('Y'),
+        ];
+
+        // Make sure the folder for last year exists, otherwise Finder will throw an exception.
+        if (is_dir($this->baseUploadPath.'/'.$lastYear->format('Y'))) {
+            $dirs[] = $this->baseUploadPath.'/'.$lastYear->format('Y');
+        }
 
         $files = Finder::create()
             ->files()
-            // Use the current year and last year in case we do this query on January 1st
-            // and the last image uploaded was 31st December the prior year.
-            ->in($this->baseUploadPath.'/'.$now->format('Y'))
-            ->in($this->baseUploadPath.'/'.$now->modify('last year')->format('Y'))
+            ->in($dirs)
             // Exclude our WebP optimised and original asset versions.
             ->notName('*.original')
             ->notName('*.webp')
