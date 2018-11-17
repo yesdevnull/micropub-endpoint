@@ -114,7 +114,7 @@ class PostMethodController extends Controller
             $slug = str_slug($firstThreeWords, '-');
         }
 
-        if (!array_key_exists('mp-slug', $commands) && $frontMatterProperties->has('name')) {
+        if (!array_key_exists('mp-slug', $commands) && '' !== $frontMatterProperties->get('name', '')) {
             $slug = $frontMatterProperties['name'];
         }
 

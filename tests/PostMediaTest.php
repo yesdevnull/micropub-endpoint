@@ -2,6 +2,7 @@
 
 use App\Contracts\BlogProvider;
 use App\Events\RebuildSiteEvent;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 
 class PostMediaTest extends TestCase
@@ -29,7 +30,8 @@ class PostMediaTest extends TestCase
             '/',
             [
                 'h' => 'entry',
-                'content' => "I wrote some amazing content here don't you think?"
+                'content' => "I wrote some amazing content here don't you think?",
+                'name' => '',
             ]
         );
 
@@ -140,6 +142,20 @@ class PostMediaTest extends TestCase
         Event::assertDispatched(RebuildSiteEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, strtolower($now->format('l-jS'))));
+    }
+
+    public function testCanUploadImage()
+    {
+        Event::fake();
+
+        $file = UploadedFile::fake()->image('test.jpg');
+
+        $this->post(
+            '/media',
+            [
+                'file' => $file,
+            ]
+        );
     }
 
     private function generateUrl(
