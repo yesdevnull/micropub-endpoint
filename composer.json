@@ -1,7 +1,7 @@
 {
-    "name": "laravel/lumen",
-    "description": "The Laravel Lumen Framework.",
-    "keywords": ["framework", "laravel", "lumen"],
+    "name": "yesdevnull/micropub-endpoint",
+    "description": "A Micropub API endpoint.",
+    "keywords": ["php", "lumen-php-framework", "micropub", "indieauth", "api"],
     "license": "MIT",
     "type": "project",
     "require": {
