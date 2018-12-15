@@ -61,4 +61,35 @@ HEREDOC;
 
         return $frontMatter;
     }
+
+    /**
+     * (over)writes the file with supplied content.
+     *
+     * @param string $content   Contents of a file
+     * @param string $file      Name of the file to write
+     * @param bool   $overwrite Whether to overwrite an existing file or not
+     *
+     * @return void
+     */
+    public function writeFile(
+        string $content,
+        string $file,
+        bool $overwrite = false
+    ): void {
+        $containingDir = \dirname($file);
+
+        if (!file_exists($containingDir)) {
+            if (!mkdir($containingDir, 0777, true) && !is_dir($containingDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $containingDir));
+            }
+        }
+
+        if (!$overwrite && file_exists($file)) {
+            throw new \RuntimeException("'$file' already exists and overwrite was not enabled.");
+        }
+
+        file_put_contents($file, $content, LOCK_EX);
+
+        return;
+    }
 }

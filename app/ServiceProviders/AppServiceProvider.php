@@ -2,7 +2,7 @@
 
 namespace App\ServiceProviders;
 
-use App\Contracts\BlogProvider;
+use App\Providers\AbstractProvider;
 use App\Providers\HugoProvider;
 use App\Service\MediaService;
 use Illuminate\Support\ServiceProvider;
@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            BlogProvider::class,
+            AbstractProvider::class,
             HugoProvider::class
         );
     }

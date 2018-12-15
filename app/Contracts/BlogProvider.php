@@ -2,36 +2,19 @@
 
 namespace App\Contracts;
 
+use App\Providers\HugoProvider;
+
 /**
  * Interface BlogProvider
  */
 interface BlogProvider
 {
     /**
-     * @param string $entry Name of the entry.
+     * Array of Micropub content types and their mapping values.
      *
-     * @return string
+     * @see HugoProvider for example of content types -> mapping values
      *
-     * @throws \InvalidArgumentException
+     * @return array
      */
-    public function getContentType(string $entry): string;
-
-    /**
-     * @param null|string $path
-     *
-     * @return string
-     */
-    public function getContentPath(?string $path = null): string;
-
-    /**
-     * @param string $contentType
-     *
-     * @return string
-     */
-    public function getContentPathForType(string $contentType): string;
-
-    public function writeFile(
-        string $content,
-        string $file
-    );
+    public function getContentTypes(): array;
 }

@@ -1,7 +1,7 @@
 <?php
 
-use App\Contracts\BlogProvider;
 use App\Events\RebuildSiteEvent;
+use App\Providers\AbstractProvider;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 
@@ -178,7 +178,7 @@ class PostMediaTest extends TestCase
     ): string {
         return sprintf(
             '%s/%s-%s.md',
-            $this->app[BlogProvider::class]->getContentPathForType($type),
+            $this->app[AbstractProvider::class]->getContentPathForType($type),
             $now->format('Y-m-d'),
             $slug
         );

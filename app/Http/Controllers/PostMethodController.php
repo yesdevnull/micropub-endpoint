@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\BlogProvider;
 use App\Events\RebuildSiteEvent;
+use App\Providers\AbstractProvider;
 use App\Service\ItemWriterService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
@@ -26,7 +26,7 @@ class PostMethodController extends Controller
     private $itemWriterService;
 
     /**
-     * @var BlogProvider
+     * @var AbstractProvider
      */
     private $blogProvider;
 
@@ -35,12 +35,12 @@ class PostMethodController extends Controller
      *
      * @param DispatcherContract $eventDispatcher
      * @param ItemWriterService  $itemWriterService
-     * @param BlogProvider       $blogProvider
+     * @param AbstractProvider   $blogProvider
      */
     public function __construct(
         DispatcherContract $eventDispatcher,
         ItemWriterService $itemWriterService,
-        BlogProvider $blogProvider
+        AbstractProvider $blogProvider
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->itemWriterService = $itemWriterService;
@@ -140,7 +140,7 @@ class PostMethodController extends Controller
             $frontMatter['slug']
         );
 
-        $this->blogProvider->writeFile(
+        $this->itemWriterService->writeFile(
             $fileContents,
             $pathToWriteTo.'/'.$filename
         );
