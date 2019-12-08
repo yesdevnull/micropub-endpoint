@@ -2,7 +2,8 @@
 
 namespace App\ServiceProviders;
 
-use App\Events\RebuildSiteEvent;
+use App\Events\PostContentEvent;
+use App\Listeners\PostCreatedPingListener;
 use App\Listeners\RebuildSiteListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
@@ -17,7 +18,8 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        RebuildSiteEvent::class => [
+        PostContentEvent::class => [
+            PostCreatedPingListener::class,
             RebuildSiteListener::class,
         ],
     ];

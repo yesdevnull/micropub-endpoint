@@ -27,5 +27,6 @@
         <env name="BASE_CONTENT_ENTRY_PATH" value="tests/blog/"/>
         <env name="BASE_UPLOAD_PATH" value="tests/blog/images/" />
         <env name="ME_URL" value="http://micropub.test"/>
+        <env name="POST_CREATED_PING_URL" value=""/>
     </php>
 </phpunit>

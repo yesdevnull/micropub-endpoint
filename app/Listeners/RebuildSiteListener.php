@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Events\RebuildSiteEvent;
+use App\Events\PostContentEvent;
 use Illuminate\Contracts\Console\Kernel;
 
 /**
@@ -28,11 +28,11 @@ class RebuildSiteListener
     /**
      * Handle the event.
      *
-     * @param RebuildSiteEvent $event
+     * @param PostContentEvent $event
      *
      * @return void
      */
-    public function handle(RebuildSiteEvent $event): void
+    public function handle(PostContentEvent $event): void
     {
         $this->console->call('site:build');
 

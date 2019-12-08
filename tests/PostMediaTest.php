@@ -1,9 +1,11 @@
 <?php
 
-use App\Events\RebuildSiteEvent;
+use App\Events\PostContentEvent;
 use App\Providers\AbstractProvider;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class PostMediaTest extends TestCase
 {
@@ -35,10 +37,10 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
+        Event::assertDispatched(PostContentEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
-        $this->assertResponseStatus(201);
+        $this->assertResponseStatus(Response::HTTP_CREATED);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
     }
 
@@ -58,10 +60,10 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
+        Event::assertDispatched(PostContentEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, $expectedSlug));
-        $this->assertResponseStatus(201);
+        $this->assertResponseStatus(Response::HTTP_CREATED);
         $this->seeHeader('Location', $this->generateUrl($now, $expectedSlug));
     }
 
@@ -82,10 +84,10 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
+        Event::assertDispatched(PostContentEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
-        $this->assertResponseStatus(201);
+        $this->assertResponseStatus(Response::HTTP_CREATED);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
     }
 
@@ -107,10 +109,10 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
+        Event::assertDispatched(PostContentEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
-        $this->assertResponseStatus(201);
+        $this->assertResponseStatus(Response::HTTP_CREATED);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
         $this->assertContains(
             "title: '${title}'",
@@ -134,7 +136,7 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
+        Event::assertDispatched(PostContentEvent::class);
 
         $this->assertFileExists($this->generateFilename('entry', $now, strtolower($now->format('l-jS'))));
     }
@@ -145,12 +147,11 @@ class PostMediaTest extends TestCase
 
         $file = UploadedFile::fake()->image('test.jpg');
 
-        $this->post(
-            '/media',
-            [
-                'file' => $file,
-            ]
-        );
+        $this->call('POST', '/media', [], [], ['file' => $file], []);
+
+        $this->assertResponseStatus(Response::HTTP_CREATED);
+        Storage::disk('local')->assertExists('2019/'.$file->hashName().'.original');
+        Storage::disk('local')->assertExists('2019/'.$file->hashName());
     }
 
     private function generateUrl(

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\RebuildSiteEvent;
+use App\Events\PostContentEvent;
 use App\Service\MediaService;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\JsonResponse;
@@ -85,7 +85,7 @@ class MediaController extends Controller
 
         // Even though we're only uploading a file we need to rebuild the site because it copies the actual file across.
         $this->eventDispatcher->dispatch(
-            new RebuildSiteEvent()
+            new PostContentEvent()
         );
 
         return new JsonResponse(

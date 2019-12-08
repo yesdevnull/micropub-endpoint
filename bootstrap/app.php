@@ -111,7 +111,7 @@ config([
         ],
     ],
     'image' => [
-        'driver' => 'Imagick',
+        'driver' => env('IMAGE_LIBRARY', 'gd'),
     ]
 ]);
 

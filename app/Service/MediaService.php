@@ -173,7 +173,7 @@ class MediaService
      */
     public function uploadPhoto(UploadedFile $file): string
     {
-        $filenameAndExtension = str_random(40).'.'.$file->guessExtension();
+        $filenameAndExtension = $file->hashName();
 
         $this
             ->imageManager

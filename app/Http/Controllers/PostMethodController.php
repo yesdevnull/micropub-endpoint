@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\RebuildSiteEvent;
+use App\Events\PostContentEvent;
 use App\Providers\AbstractProvider;
 use App\Service\ItemWriterService;
 use App\ValueObjects\ItemRequestValueObjectInterface;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 /**
  * Class PostMethodController
@@ -111,7 +112,7 @@ class PostMethodController extends Controller
 
             $firstThreeWords = implode(' ', $firstThreeWordsArray);
 
-            $slug = str_slug($firstThreeWords, '-');
+            $slug = Str::slug($firstThreeWords, '-');
         }
 
         if (!array_key_exists('mp-slug', $commands) && '' !== $frontMatterProperties->get('name', '')) {
@@ -122,7 +123,7 @@ class PostMethodController extends Controller
             $slug = $commands['mp-slug'];
         }
 
-        $frontMatter['slug'] = str_slug($slug, '-');
+        $frontMatter['slug'] = Str::slug($slug, '-');
 
         $frontMatter['date'] = $now->format(\DateTime::W3C);
 
@@ -145,16 +146,18 @@ class PostMethodController extends Controller
             $pathToWriteTo.'/'.$filename
         );
 
-        $this->eventDispatcher->dispatch(
-            new RebuildSiteEvent()
-        );
-
-        return sprintf(
+        $url = sprintf(
             '%s%d/%02d/%s/',
             env('ME_URL'),
             $now->format('Y'),
             $now->format('m'),
             $frontMatter['slug']
         );
+
+        $this->eventDispatcher->dispatch(
+            new PostContentEvent($url)
+        );
+
+        return $url;
     }
 }
