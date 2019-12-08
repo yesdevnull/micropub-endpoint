@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Event;
 
 class PostMediaTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -17,11 +17,6 @@ class PostMediaTest extends TestCase
         );
     }
 
-    /**
-     * A basic test example.
-     *
-     * @return void
-     */
     public function testNewPostUsingFormInput()
     {
         Event::fake();
