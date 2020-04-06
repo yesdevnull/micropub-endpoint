@@ -150,7 +150,7 @@ class PostMethodController extends Controller
         );
 
         return sprintf(
-            '%s%d/%02d/%s/',
+            '%s%d/%d/%s/',
             env('ME_URL'),
             $now->format('Y'),
             $now->format('m'),
