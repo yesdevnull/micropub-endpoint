@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             MediaService::class,
-            function (Application $app) {
+            static function (Application $app) {
                 return new MediaService(
                     $app->make('filesystem'),
                     $app->make('image'),

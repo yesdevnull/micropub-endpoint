@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Str;
+
 /**
  * Class AbstractProvider
  */
@@ -36,7 +38,7 @@ abstract class AbstractProvider
             return $basePath;
         }
 
-        $basePath = ends_with($basePath, '/') ? $basePath : $basePath.'/';
+        $basePath = Str::endsWith($basePath, '/') ? $basePath : $basePath.'/';
 
         return $basePath.$path;
     }

@@ -3,7 +3,6 @@
 use App\Events\RebuildSiteEvent;
 use App\Providers\AbstractProvider;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Event;
 
 class PostMediaTest extends TestCase
 {
@@ -19,7 +18,7 @@ class PostMediaTest extends TestCase
 
     public function testNewPostUsingFormInput()
     {
-        Event::fake();
+        $this->expectsEvents(RebuildSiteEvent::class);
 
         $this->post(
             '/',
@@ -35,8 +34,6 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
-
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
         $this->assertResponseStatus(201);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
@@ -44,7 +41,7 @@ class PostMediaTest extends TestCase
 
     public function testNewPostIgnoresUrlsInPostBodyForSlug()
     {
-        Event::fake();
+        $this->expectsEvents(RebuildSiteEvent::class);
 
         $this->post(
             '/',
@@ -58,8 +55,6 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
-
         $this->assertFileExists($this->generateFilename('entry', $now, $expectedSlug));
         $this->assertResponseStatus(201);
         $this->seeHeader('Location', $this->generateUrl($now, $expectedSlug));
@@ -67,7 +62,7 @@ class PostMediaTest extends TestCase
 
     public function testNewPostWithCustomSlugUsingFormInput()
     {
-        Event::fake();
+        $this->expectsEvents(RebuildSiteEvent::class);
 
         $slug = 'sweet-custom-slug';
 
@@ -82,8 +77,6 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
-
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
         $this->assertResponseStatus(201);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
@@ -91,7 +84,7 @@ class PostMediaTest extends TestCase
 
     public function testNewPostWithCustomTitleUsingFormInput()
     {
-        Event::fake();
+        $this->expectsEvents(RebuildSiteEvent::class);
 
         $title = 'My Very Cool Post';
         $slug = 'my-very-cool-post';
@@ -107,8 +100,6 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
-
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
         $this->assertResponseStatus(201);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
@@ -122,7 +113,7 @@ class PostMediaTest extends TestCase
 
     public function testNewPostWithImageAndNoText()
     {
-        Event::fake();
+        $this->expectsEvents(RebuildSiteEvent::class);
 
         $this->post(
             '/',
@@ -134,15 +125,11 @@ class PostMediaTest extends TestCase
 
         $now = new \DateTime();
 
-        Event::assertDispatched(RebuildSiteEvent::class);
-
         $this->assertFileExists($this->generateFilename('entry', $now, strtolower($now->format('l-jS'))));
     }
 
     public function testCanUploadImage()
     {
-        Event::fake();
-
         $file = UploadedFile::fake()->image('test.jpg');
 
         $this->post(

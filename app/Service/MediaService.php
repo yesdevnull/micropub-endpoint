@@ -5,6 +5,7 @@ namespace App\Service;
 use Illuminate\Contracts\Filesystem\Factory as FactoryContract;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Intervention\Image\Constraint;
 use Intervention\Image\ImageManager;
 use Symfony\Component\Finder\Finder;
@@ -173,7 +174,7 @@ class MediaService
      */
     public function uploadPhoto(UploadedFile $file): string
     {
-        $filenameAndExtension = str_random(40).'.'.$file->guessExtension();
+        $filenameAndExtension = Str::random(40).'.'.$file->guessExtension();
 
         $this
             ->imageManager
