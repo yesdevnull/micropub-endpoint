@@ -103,7 +103,7 @@ class PostMediaTest extends TestCase
         $this->assertFileExists($this->generateFilename('entry', $now, $slug));
         $this->assertResponseStatus(201);
         $this->seeHeader('Location', $this->generateUrl($now, $slug));
-        $this->assertContains(
+        $this->assertStringContainsString(
             "title: '${title}'",
             file_get_contents(
                 $this->generateFilename('entry', $now, $slug)
